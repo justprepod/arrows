@@ -1,0 +1,12 @@
+I'm writing alphabet education game based on ancient greece myths.
+
+Game is single-screen. Game field depicts landscape ground, sky with clouds. Clouds have letters and syllables written on them. Words appear on screen, and player quest is to write words by hitting proper clouds. Player uses keyboard arrow keys to move character character with bow left and right, and space key to make character shoot arrow vertically. When arrow hits cloud with proper letter, cloud disappears.
+
+Part of written word is highlited. When word is complete, next word appears. Important: it must be possible to write word with available syllables and letters.
+
+There's predefined list of words, words are choosen randomly, but without repeats.
+
+Screen virtually divided in columns (10-12), character is moving through columns.
+
+
+Write game using pure js, html and css. Single file.
