@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Greek Alphabet Game</title>
+  <style>
+    @font-face {
+      font-family: 'CustomFontFamily', Arial, sans-serif;
+      src: url('assets/font.woff') format('woff');
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #game-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      aspect-ratio: 16 / 9;
+      width: 100vw;
+      max-height: 100vh;
+      max-width: calc(100vh * 16 / 9);
+      background: url('landscape.jpg') no-repeat center center;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      flex: 0 0 var(--header-height);
+      text-align: center;
+      font-size: 5vw;
+      color: white;
+      text-shadow: 2px 2px 4px black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .main {
+      flex: 1;
+      position: relative;
+    }
+
+    .footer {
+      flex: 0 0 var(--footer-height);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0.5rem 0;
+      overflow: hidden;
+    }
+
+    .clouds-table {
+      width: 100%;
+      height: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    .clouds-table td {
+      position: relative;
+      width: 11.11%;
+    }
+
+    .cloud-container {
+      position: absolute;
+      top: var(--cloud-offset-y);
+      left: 50%;
+      transform: translate(-50%, 0);
+      width: 95%;
+    }
+
+    .cloud-img {
+      width: 100%;
+      height: auto;
+      display: block;
+
+    }
+
+    .syllable {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5vw;
+      color: black;
+      font-weight: bold;
+      font-size: 2vw;
+      pointer-events: none;
+    }
+
+
+
+    .bird-icon {
+      height: 80%;
+      max-height: 80%;
+      width: auto;         /* Maintain aspect ratio */
+      max-width: 100px;    /* Optional: prevent super wide birds */
+      object-fit: contain; /* Ensure the image fits inside the box */
+      opacity: 1;
+      box-sizing: border-box;
+      transition: opacity 1s ease-in;
+    }
+
+    .bird-icon.hidden {
+      opacity: 0;
+    }
+
+    #character {
+      position: absolute;
+      bottom: 0;
+      width: 80px;
+      transition: left var(--char-move-time);
+    }
+
+    .arrow {
+      position: absolute;
+      width: 50px;
+      background: url('arrow.png') no-repeat center center;
+      background-size: contain;
+    }
+
+    #speech-bubble {
+      position: absolute;
+      font-size: 1.5vw;
+      color: white;
+      text-shadow: 2px 2px 4px black;
+      display: none;
+    }
+
+    .falling-bird {
+      position: absolute;
+      width: 80px;
+      pointer-events: none;
+      transition: top var(--bird-fall-time) linear;
+      z-index: 10;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(128,128,128,1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      display: none;
+    }
+
+    #overlay img {
+      max-width: 80%;
+      max-height: 80%;
+    }
+
+    #footer-panel {
+      height: 100%;
+      width: 60%; /* Adjust width as needed */
+      background: url('panel_background.jpg') no-repeat center center;
+      background-size: cover; /* background is larger and cropped */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 15px; /* optional rounded corners */
+      box-shadow: 0 0 10px rgba(0,0,0,0.5); /* optional shadow */
+    }
+
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.6; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .pulse {
+      animation: pulse 1.5s infinite;
+    }
+
+    :root {
+      --cloud-offset-y: 0%; /* Adjust this value to change vertical position of clouds */
+      --footer-height: 10%;
+    }
+
+  </style>
+</head>
+<body>
+<div id="start-screen" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:grey; display:flex; justify-content:center; align-items:center; z-index:10000;">
+  <img src="character.png" id="start-icon" style="width:30%;" class="pulse">
+</div>
+<div id="overlay"><img id="overlay-image"></div>
+<div id="game-container">
+  <div class="header" id="header">&nbsp;</div>
+  <div class="main" id="main">
+    <table class="clouds-table">
+      <tr id="cloud-row"></tr>
+    </table>
+    <img src="character.png" id="character">
+    <div id="speech-bubble"></div>
+  </div>
+  <div class="footer" id="footer"></div>
+</div>
+
+<script>
+// === CONSTANTS ===
+const HEADER_HEIGHT = '10%';
+const CHARACTER_MOVE_TIME = '0.3s';
+const ARROW_FLIGHT_TIME = 1000;
+const BIRD_FALL_TIME = 2000;
+const SPEECH_DURATION = 3000;
+const IDLE_TIMEOUT = 15000;
+const SPEECH_BUBBLE_X = 100;
+const SPEECH_BUBBLE_Y = 190;
+const BASE_HEIGHT = 720;
+const CHARACTER_BOTTOM_OFFSET_BASE = 0;
+const INTRO_DELAY = 10000;
+const WORD_FADEIN_TIME_S = 3;
+const FOOTER_HEIGHT = '10%';
+const HIT_VOLUME = 0;
+const WHOOSH_VOLUME = 0;
+const SLAUGHTER_PAUSE_MS = 2000;
+const STATIC_BIRD_SCALE = 2.5;
+
+// === SET CSS VARIABLES ===
+document.documentElement.style.setProperty('--header-height', HEADER_HEIGHT);
+document.documentElement.style.setProperty('--char-move-time', CHARACTER_MOVE_TIME);
+document.documentElement.style.setProperty('--bird-fall-time', BIRD_FALL_TIME + 'ms');
+
+// === GAME DATA ===
+const dictionary = [['А', 'ФИ', 'НА'], ['ПЕР', 'СЕЙ'], ['ПА', 'РИС'], ['Е', 'ЛЕ', 'НА'], ['АР', 'ГО'], ['Я', 'СОН'], ['А', 'РЕС'], ['РУ', 'НО'], ['ПАР', 'ФЕ', 'НОН'], ['ГАР', 'ПИ', 'Я'], ['ЦЕР', 'БЕР'], ['ГИД', 'РА'], ['ГЕР', 'МЕС'], ['ГЕК', 'ТОР'], ['МЕ', 'НЕ', 'ЛАЙ'], ['А', 'ПОЛ', 'ЛОН'], ['ДЕ', 'МЕТ', 'РА'], ['ПО', 'СЕЙ', 'ДОН'], ['МЕ', 'ДУ', 'ЗА'], ['ДИ', 'О', 'НИС'], ['КИР', 'КА'], ['ПЕ', 'ГАС'], ['КОЛ', 'ХИ', 'ДА'], ['ТРО', 'Я'], ['ТЕ', 'СЕЙ'], ['О', 'РА', 'КУЛ'], ['СИ', 'РЕ', 'НА'], ['ПИ', 'ФИ', 'Я'], ['ОР', 'ФЕЙ'], ['ГЕ', 'РА'], ['ПАР', 'НАС']];
+
+const allSyllables = ['А', 'ФИ', 'НА', 'ПЕР', 'СЕЙ', 'ПА', 'РИС', 'Е', 'ЛЕ', 'НА', 'АР', 'ГО', 'Я', 'СОН', 'А', 'РЕС', 'РУ', 'НО', 'ПАР', 'ФЕ', 'НОН', 'ГАР', 'ПИ', 'Я', 'ЦЕР', 'БЕР', 'ГИД', 'РА', 'МЕ', 'ДЕ', 'Я', 'ГЕР', 'МЕС', 'ПРО', 'МЕ', 'ТЕЙ', 'ГЕК', 'ТОР', 'МЕ', 'НЕ', 'ЛАЙ', 'А', 'ПОЛ', 'ЛОН', 'ДЕ', 'МЕТ', 'РА', 'ПО', 'СЕЙ', 'ДОН', 'МЕ', 'ДУЗА', 'ДИ', 'О', 'НИС', 'КИР', 'КА', 'ПЕ', 'ГАС', 'КОЛ', 'ХИ', 'ДА', 'ТРО', 'Я', 'ТЕ', 'СЕЙ', 'О', 'РА', 'КУЛ', 'СИ', 'РЕ', 'НА'];
+const idlePhrases = ['idle0.mp3','idle1.mp3','idle2.mp3'];
+
+let chosenWords = [], totalSyllables = 0, currentWordIndex = 0, currentSyllable = 0, position = 0;
+
+const character = document.getElementById('character');
+const cloudRow = document.getElementById('cloud-row');
+const speechBubble = document.getElementById('speech-bubble');
+const footer = document.getElementById('footer');
+const container = document.getElementById('game-container');
+const overlay = document.getElementById('overlay');
+const overlayImage = document.getElementById('overlay-image');
+
+const whoosh = new Audio('whoosh.mp3');
+const hit = new Audio('hit.mp3');
+
+function startGame() {
+  chosenWords = dictionary.sort(() => 0.5 - Math.random()).slice(0, 3);
+  totalSyllables = chosenWords.reduce((sum, word) => sum + word.length, 0);
+
+  footer.innerHTML = '';
+  const panel = document.createElement('div');
+  panel.id = 'footer-panel';
+
+  for (let i = 0; i < totalSyllables; i++) {
+    const img = document.createElement('img');
+    img.src = 'placeholder_bird.png';
+    img.className = 'bird-icon';
+    panel.appendChild(img);
+  }
+
+footer.appendChild(panel);
+
+  currentWordIndex = 0;
+  currentSyllable = 0;
+  setTimeout(setupWord, 500);
+}
+
+let inputDisabled = false;
+
+function setupWord() {
+  inputDisabled = true;
+  const word = chosenWords[currentWordIndex];
+  const header = document.getElementById('header');
+
+  header.innerHTML = "&nbsp;";
+  
+  fillClouds(word);
+
+  setTimeout(() => {
+    playAudio(`audio/${word.join('').toLowerCase()}.wav`);
+  
+    // Display the word with opacity transition after pronunciation
+    header.innerHTML = word.map((s, i) => {
+      if (i < currentSyllable) {
+        return `<span style="color: black;">${s}</span>`;
+      } else {
+        return `<span style="color: white;">${s}</span>`;
+      }
+    }).join('-');
+
+    setTimeout(()=> {
+      pronounceCurrent();
+      inputDisabled = false;
+    }, 4000);
+
+    header.style.opacity = 0;  // Start with opacity 0
+    header.style.transition = 'opacity 0s';
+
+    setTimeout(() => {
+      header.style.transition = `opacity ${WORD_FADEIN_TIME_S}s`;  // Apply 3-second fade-in
+      header.style.opacity = 1;  // Gradually reveal word
+  }, 2000);  // Wait 1 second before starting transition
+
+}, WORD_FADEIN_TIME_S * 1000);
+
+}
+
+function cloudHTML(syll){
+  return `
+  <div class="cloud-container">
+    <img class="cloud-img" src="cloud.png">
+    <div class="syllable">${syll}</div>
+  </div>`;
+}
+
+function fillClouds(syllables) {
+  cloudRow.innerHTML = '';
+
+  const numCols = 9;
+  const activeCols = numCols - 1; // one column is skipped
+  const colIndexes = Array.from({ length: activeCols }, (_, i) => i);
+  const charCol = position; // player's current column index (0-7)
+  const correctSyllables = [...syllables];
+  const decoys = allSyllables.filter(s => !correctSyllables.includes(s));
+
+  // Ensure the first correct syllable is NOT placed at character position
+  const safeIndexes = colIndexes.filter(i => i !== charCol);
+
+  // Place the first syllable somewhere safe
+  const firstSyllableIndex = safeIndexes[Math.floor(Math.random() * safeIndexes.length)];
+  const finalSyllables = Array(activeCols).fill(null);
+  finalSyllables[firstSyllableIndex] = correctSyllables[0];
+
+  // Shuffle the remaining correct syllables (excluding first)
+  const remainingCorrect = correctSyllables.slice(1);
+  let unusedIndexes = colIndexes.filter(i => i !== firstSyllableIndex);
+
+  for (let syll of remainingCorrect) {
+    const idx = unusedIndexes.splice(Math.floor(Math.random() * unusedIndexes.length), 1)[0];
+    finalSyllables[idx] = syll;
+  }
+
+  // Fill in remaining slots with decoys
+  for (let i = 0; i < finalSyllables.length; i++) {
+    if (!finalSyllables[i]) {
+      let decoy;
+      do {
+        decoy = decoys[Math.floor(Math.random() * decoys.length)];
+      } while (correctSyllables.includes(decoy));
+      finalSyllables[i] = decoy;
+    }
+  }
+
+  // Render clouds with syllables
+  for (let i = 0; i < numCols; i++) {
+    const td = document.createElement('td');
+    if (i === 0) {
+      cloudRow.appendChild(td); // spacer
+      continue;
+    }
+    const syll = finalSyllables[i - 1];
+    td.innerHTML = cloudHTML(syll);
+    cloudRow.appendChild(td);
+  }
+}
+
+
+let characterHeight = null;
+let characterWidth = null;
+
+function updateCharacterPosition() {
+  const colWidth = container.clientWidth / 9;
+
+  const scaleY = container.clientHeight / BASE_HEIGHT;
+  const characterBottomOffset = CHARACTER_BOTTOM_OFFSET_BASE * scaleY;
+
+  character.style.width = `${colWidth}px`;
+
+  character.style.left = `${(position + 1) * colWidth}px`;
+  character.style.bottom = `${characterBottomOffset}px`;
+
+  characterHeight = character.height;
+  characterWidth = colWidth;
+}
+
+function shootArrow() {
+  if (shootArrow.locked) return;
+  shootArrow.locked = true;
+  whoosh.currentTime = 0;
+  whoosh.volume = WHOOSH_VOLUME;
+  whoosh.play();
+  const arrow = document.createElement('div');
+  arrow.className = 'arrow';
+  const colWidth = container.clientWidth / 9;
+  arrow.style.left = `${(position + 1) * colWidth + colWidth / 2 - 20}px`;
+  arrow.style.bottom = '100px';
+  arrow.style.height = `${characterHeight}px`;
+  container.appendChild(arrow);
+
+  const targetCol = cloudRow.children[position + 1];
+  const hitSyll = targetCol.querySelector('.syllable')?.textContent;
+  const expected = chosenWords[currentWordIndex][currentSyllable];
+
+  let start = null;
+  function animateArrow(ts) {
+    if (!start) start = ts;
+    const elapsed = ts - start;
+    arrow.style.bottom = `${100 + (elapsed / ARROW_FLIGHT_TIME) * 600}px`;
+
+    if (elapsed < ARROW_FLIGHT_TIME) {
+      requestAnimationFrame(animateArrow);
+    } else {
+      container.removeChild(arrow);
+      if (hitSyll === expected) {
+        hit.volume = HIT_VOLUME;
+        hit.play();
+        showFallingBird(targetCol).then(() => {
+          const randomDecoy = allSyllables[Math.floor(Math.random() * allSyllables.length)];
+          targetCol.innerHTML = cloudHTML(randomDecoy);
+          updateFooter();
+          currentSyllable++;
+          if (currentSyllable >= chosenWords[currentWordIndex].length) {
+            currentWordIndex++;
+            if (currentWordIndex >= chosenWords.length) {
+              clearTimeout(window.idleTimeout);
+              setTimeout(() => showOutro(), 500);
+              return;
+            }
+            currentSyllable = 0;
+            setTimeout(setupWord, 500);
+          } else {
+            document.getElementById('header').innerHTML = chosenWords[currentWordIndex]
+            .map((s, i) => {
+              const isCurrentOrUpcoming = i >= currentSyllable;
+              const syllableColor = i < currentSyllable ? 'black' : 'white';
+
+              let last = chosenWords[currentWordIndex].length - 1 === i;
+              
+              // Adding black dashes for complete syllables
+              const syllableWithDash = i < currentSyllable
+                ? `<span style="color: ${syllableColor};">${s}${last?'':'-'}</span>`
+                : `<span style="color: ${syllableColor};">${s}${last?'':'-'}</span>`;
+              
+              return syllableWithDash;
+            }).join('');
+            pronounceCurrent();
+          }
+          shootArrow.locked = false;
+        });
+      } else {
+        //miss.play();
+        pronounceCurrent();
+        shootArrow.locked = false;
+      }
+    }
+  }
+  requestAnimationFrame(animateArrow);
+}
+
+function showFallingBird(cell) {
+  return new Promise(resolve => {
+    const rect = cell.getBoundingClientRect();
+    const gameRect = container.getBoundingClientRect();
+
+    // Remove cloud + text
+    const cloudContainer = cell.querySelector('.cloud-container');
+    if (cloudContainer) cloudContainer.remove();
+
+    // Show slayed bird static image (larger)
+    const staticBird = document.createElement('img');
+    staticBird.src = 'slayed_bird.png';
+    staticBird.style.position = 'absolute';
+    staticBird.style.zIndex = 10;
+    staticBird.style.width = `${characterWidth * STATIC_BIRD_SCALE}px`; // static image is bigger
+    staticBird.style.left = `${rect.left - gameRect.left + rect.width / 2 - (characterWidth * 1.5) / 2}px`;
+    staticBird.style.top = `${rect.top - gameRect.top}px`;
+    container.appendChild(staticBird);
+
+    // Wait 1 second, then remove static and drop smaller version
+    setTimeout(() => {
+      staticBird.remove();
+
+      const fallingBird = document.createElement('img');
+      fallingBird.src = 'hit_bird.png';
+      fallingBird.className = 'falling-bird';
+      fallingBird.style.left = `${rect.left - gameRect.left + rect.width / 2 - characterWidth / 2}px`;
+      fallingBird.style.top = `${rect.top - gameRect.top}px`;
+      fallingBird.style.width = `${characterWidth}px`;
+
+      container.appendChild(fallingBird);
+
+      // Trigger falling
+      requestAnimationFrame(() => {
+        fallingBird.style.top = `${container.clientHeight - 80}px`;
+      });
+
+      // Remove after fall ends
+      setTimeout(() => {
+        fallingBird.remove();
+        resolve();
+      }, BIRD_FALL_TIME);
+    }, SLAUGHTER_PAUSE_MS); // 1 second display of static image
+  });
+}
+
+function updateFooter() {
+  const birds = footer.querySelectorAll('img');
+  for (let i = 0; i < birds.length; i++) {
+    if (birds[i].src.includes('placeholder_bird')) {
+      const bird = birds[i];
+      bird.classList.add('hidden');
+      setTimeout(() => bird.src = 'slayed_bird.png', 500);
+      setTimeout(() => bird.classList.remove('hidden'), 500);
+      break;
+    }
+  }
+}
+
+function showSpeech(text) {
+  const coords = getSpeechBubbleCoords(SPEECH_BUBBLE_X, SPEECH_BUBBLE_Y);
+  speechBubble.style.left = `${coords.x}px`;
+  speechBubble.style.top = `${coords.y}px`;
+  speechBubble.textContent = text;
+  speechBubble.style.display = 'block';
+  setTimeout(() => { speechBubble.style.display = 'none'; }, SPEECH_DURATION);
+}
+
+function getSyllableAudioFilename(wordArray, currentIndex) {
+  return wordArray.map((s, i) => i === currentIndex ? `-${s}-` : s).join('').replace(/--/g, '-').toLowerCase();
+}
+
+function pronounceCurrent() {
+  const syll = chosenWords[currentWordIndex][currentSyllable];
+  console.log(syll);
+  //const syll = getSyllableAudioFilename(chosenWords[currentWordIndex], currentSyllable);
+  //showSpeech(syll);
+  playAudio(`audio/${syll.toLowerCase()}.wav`);
+}
+
+function playAudio(file) {
+  const audio = new Audio(file);
+  audio.play();
+}
+
+function resetIdleTimer() {
+  clearTimeout(window.idleTimeout);
+  window.idleTimeout = setTimeout(() => {
+    //playAudio(idlePhrases[Math.floor(Math.random() * idlePhrases.length)]);
+    pronounceCurrent();
+    resetIdleTimer();
+  }, IDLE_TIMEOUT);
+}
+
+function getSpeechBubbleCoords(baseX, baseY) {
+  const scaleX = container.clientWidth / 1280;
+  const scaleY = container.clientHeight / 720;
+  return { x: baseX * scaleX, y: baseY * scaleY };
+}
+
+function showOutro() {
+  overlayImage.src = 'outro.jpg';
+  overlay.style.display = 'flex';
+  playAudio('outro.mp3');
+}
+
+// === INIT ===
+
+let keyPressed = false;
+
+document.addEventListener('keydown', e => {
+  if (keyPressed) return;
+  keyPressed = true;
+  if (overlay.style.display !== 'none') return; // Prevent input during intro/outro
+  if (shootArrow.locked) return;
+  if (inputDisabled) return;
+
+  if (e.key === 'ArrowLeft') {
+    if (position > 0) position--;
+    updateCharacterPosition();
+  } else if (e.key === 'ArrowRight') {
+    if (position < 7) position++;
+    updateCharacterPosition();
+  } else if (e.key === ' ') {
+    shootArrow();
+  }
+  resetIdleTimer();
+});
+
+document.addEventListener('keyup', (e) => {
+  keyPressed = false; // Reset on any key release
+});
+
+  document.addEventListener('DOMContentLoaded', () => {
+  const startScreen = document.getElementById('start-screen');
+
+  document.addEventListener('keydown', function launchIntro(e) {
+    if (e.code === 'Space') {
+      document.removeEventListener('keydown', launchIntro);
+      startScreen.style.display = 'none'; // Hide pulsating icon
+      overlayImage.src = 'intro.jpg';
+      overlay.style.display = 'flex';
+      playAudio('intro.mp3');
+
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        updateCharacterPosition();
+        startGame();
+        resetIdleTimer();
+      }, INTRO_DELAY);
+    }
+  });
+});
+
+</script>
+</body>
+</html>

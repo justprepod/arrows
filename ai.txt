@@ -1,12 +1,169 @@
 I'm writing alphabet education game based on ancient greece myths.
 
-Game is single-screen. Game field depicts landscape ground, sky with clouds. Clouds have letters and syllables written on them. Words appear on screen, and player quest is to write words by hitting proper clouds. Player uses keyboard arrow keys to move character character with bow left and right, and space key to make character shoot arrow vertically. When arrow hits cloud with proper letter, cloud disappears.
+# Plot
 
-Part of written word is highlited. When word is complete, next word appears. Important: it must be possible to write word with available syllables and letters.
+Hero is repeating one of Hercules labours - stymphalian birds. Birds are hiding behind clouds, but Athen helps hero by pointing clouds which should be targeted. Hero must defeat all birds.
 
-There's predefined list of words, words are choosen randomly, but without repeats.
+# Gameplay
 
-Screen virtually divided in columns (10-12), character is moving through columns.
+Before game intro screen is displayed on grey background and intro music played. Game starts on spacebar key.
+
+Game is single-screen. Game field depicts landscape ground, sky with clouds and Athen figure. Clouds have syllables written on them in UPPERCASE. Words appear on screen, and player quest is to write words by hitting proper clouds.
+
+Before each syllable Athen pronounces it - sertain sound is played and speech bubble hint is appeared on screen within for a while.
+
+Player uses keyboard arrow keys to move character with bow left and right, and space key to make character shoot arrow vertically. Screen is virtually divided to 8 columns. Character is snapped to center of column, each keypress moves him to neighbouring column, so only 8 positions are available for character. Arrow flies vertically upward for 0.5 seconds with whoosh sound.
+
+Syllables placed on clouds contain correct syllables and random decoys.
+
+When arrow hits cloud with correct syllable, cloud disappears with hit sound, and is replaced by a new cloud with random decoy. Image of shot Stymphalian bird is shown, then it falls down for 1 second and disappears.
+
+If arrow hits wrong cloud, cloud remains and hint with correct syllable reappeard.
+
+Part of written word is highlighted. When word is complete, next word appears. It must be possible to write word with available syllables. Syllables are shuffled and mixed with decoys, but always allow correct completion. Player must choose correct syllables in the right order.
+
+There's a predefined list of words, chosen randomly without repeats. Game ends when all words are completed. The total number of syllables in selected words is counted and displayed as bird placeholders in the footer. Each correct hit replaces a placeholder with a slayed bird.
+
+There are audio records of all syllables and words. When word is shown, corresponding audio is played. Then, each syllable is pronounced in order. If player hits wrong cloud, current syllable is repeated.
+
+Each 5 seconds of inactivity, a voice says an idle cheering phrase like "go on, hero!" and hint with current syllable is shown. Idle timer resets on any keypress.
+
+When game finished, outro screen is displayed on grey background and outro music played.
+
+# Design
+- game screen has proportion 1280x720, it is scaled proportionally to fit window size and letterboxed 
+- game screen is placed in center of window, window has some background image
+- game screen virtually split in areas like this
+```
++-------------------+
+|      header       |
++-------------------+
+|                   |
+|                   |
+|       main        |
+|                   |
++-------------------+
+|     footer        |
++-------------------+
+```
+- header contains current word
+- main holds actual game field. Clouds are positioned in a single horizontal row at the same Y coordinate, one cloud per column (8 total).
+- footer holds images of slayed birds and birds left (based on total syllables)
+- important notice - regions are divided virtually, whole game screen has single background image, coordinates for displayed word, character positions and birds counter are calculated dynamically depending on actual size
+
+# Design specific
+- header takes 10% of game screen height, but this value can be changed in code later
+- arrow flies for 0.5 seconds with whoosh sound
+- character transits smoothly, it takes 0.3 seconds for moving to neighbouring column
+- when arrow hits correct cloud, cloud disappears and image of shot stymphalian bird shows and fades for 1 seconds, new cloud appears in same column
+- clouds are represented with image
+- arrow is represented with image
+- when user takes no action for 5 seconds, voice says some cheering phrases like "go on, hero!" and repeats current syllable, timer resets on keypress
+- current syllable in left area has certain coordinates relative to left-top corner of left area, it is hardcoded to 100,100, but designer can change it later to fit certain Athena image
+- Athena is part of background image, speech baloon coordinates are translated dynamically from base image according to current scale (like 100,100 is predefined coords for image, but if image is scaled x2, then bubble coords will be 200,200)
+
+# Game flow example
+- ten placeholder images are shown in footer
+- word "PAR-THE-NON" appears in header and image of Parhenon appears
+- background vois says "Parthenon"
+- clouds appear, with syllables "PAR", "THE", "NON" and other random
+- Athene says "par", syllable "par" appears in speech buble for 1 second
+- player moves character under cloud "PAR" and hits it
+- cloud disappears with hit sound, image of shot bird shown and disappeard
+- first placeholder image in footer is replaced with image of slayed bird
+- Athene says "the", syllable "the" appears in speech buble for 1 second
+- player shoots arrow wrong syllable
+- cloud doen't disappear, but miss sound played
+- Athene says "the", syllable "the" appears in speech buble for 1 second
+
+# Assets
+- background.jpg, character.png, arrow.png, cloud.png, landscape.jpg, hit_bird.png, slayed_bird.jpg, placeholder_bird.jpg, intro.jpg, outro.jpg
+- whoosh.mp3, hit.mp3, miss.mp3, intro.mp3, outro.mp3
+- words and syllables are in files like parthenon.mp3, _PAR_thenon.mp3, par_THE_non.mp3 and parthe_NON_.mp3
+- idle phrases are stored in files idle0.mp3, idle1.mp3 and so on. List of idle phrases is hardcoded.
 
 
-Write game using pure js, html and css. Single file.
+At the moment i have some code, according to this specification.
+
+I want change start logic to following:
+1. on page load, character.png icon is pulsating on grey screen
+2. when user presses 'space', icon disappears
+3. intro.jpg is shown on grey screen and intro.mp3 is played
+3. after 5 seconds music stops and game starts
+
+Do corresponding updates. Do not write whole code. Just point where problem is, and give snippet how to fix.
+
+>>>
+
+At the moment i have some code. I need to do some changes in assets names.
+
+1. Words are stored in array like ['par-the-non', 'a-the-na']
+2. When word displayed, it is capitalised. "par-the-non" becomes "PAR-THE-NON"
+3. whole word pronunciation stored in file with name without dashes - "par-the-non" -> "parthenon.mp3"
+4. Current syllable is stored in file, which name is generated like whole word, but certain syllable embraced with dashes like -par-thenon.mp3, or par-the-non.mp3
+
+Do corresponding updates. Do not write whole code. Just point where problem is, and give snippet how to fix.
+
+
+>>>
+
+At the moment i have some code. Modify sequence like this:
+
+1. game starts (or previous word is complete)
+2. word is pronounced (parhenon.mp3)
+3. word immediately start to show up, and it takes 3 seconds from 0 opacity to 1
+4. when word showup complete, clouds appear
+5. syllable is pronounced
+
+
+Do corresponding updates. Do not write whole code. Just point where problem is, and give snippet how to fix.
+
+
+>>>
+
+At the moment i have some code. Add some features and fix bugs.
+
+1. add delay BEFORE word appears, and word must fadein slowly. Problem is player is desoriented when words are changed instantly. Fix to next scenario: intro shown, game field appears, word "parthenon" slowly appears, Athen says "PAR".
+2. Disable hero cheerups. Only hint with current syllable must be shown and corresponding syllable played. No voice "idle.mp3" be played
+
+Do corresponding updates. Do not write whole code. Just point where problem is, and give snippet how to fix.
+
+
+>>>
+
+At the moment i have some code. Add some features and fix bugs.
+
+1. Syllable must overlap cloud, at the moment syllable is below cloud image.
+2. Modify logic. There are three words are randomly choosen from dictionary. Total syllables are counted. Progress bar (birds placeholders in footer) represent total syllables. After word finished, next one appeard. Game finished when all syllables connected.
+3. Disable hero cheerups. Only hint with current syllable must be shown and corresponding sound played.
+4. At the moment image of slayed bird just appears and disappears in a second. But it must visually "fall down" - Y coordinate of image must increase to reach bottom of game field for 1 second.
+
+Do corresponding updates. Single file, pure js, html and css code.
+
+>>>
+
+At the moment i have some code. Add some features and fix bugs. Add some feature and fixes:
+1. Slayed bird in footer must fade in for 1 second, and fading must start AFTER bird animation complete.
+2. Add outro screen (outro screen is outro.jpg displayed on center of screen on grey background)
+3. disable keyboard controls while are all animations are complete, doesn't matter hit or miss.
+4. Syllable tracking progress in header
+5. Define all constants (coordinates, timespans etc) as constants in beginning of JS code.
+
+Do corresponding updates. Single file, pure js, html and css code.
+
+
+Study this specification, check for inconsistency and ask questions if some disambigutions are left.
+
+Give some ideas how to write this game using pure js, html and css. Especially how to implement game screen scaling and recalculating character positions and position of Athens's clue.
+
+
+ASSETS:
+
+
+
+
+https://deepai.org/machine-learning-model/pixel-world-generator
+ancient greece hills scenery 2d game asset vectorart simplified
+
+https://www.cleanpng.com
+https://pixabay.com
