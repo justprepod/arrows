@@ -608,7 +608,6 @@ document.addEventListener('keyup', (e) => {
   const startScreen = document.getElementById('start-screen');
 
   document.addEventListener('keydown', function launchIntro(e) {
-    if (e.code === 'Space') {
       document.removeEventListener('keydown', launchIntro);
       startScreen.style.display = 'none'; // Hide pulsating icon
       overlayImage.src = 'intro.jpg';
@@ -621,7 +620,6 @@ document.addEventListener('keyup', (e) => {
         startGame();
         resetIdleTimer();
       }, INTRO_DELAY);
-    }
   });
 });
 
