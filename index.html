@@ -5,11 +5,12 @@
   <title>Greek Alphabet Game</title>
   <style>
     @font-face {
-      font-family: 'CustomFontFamily', Arial, sans-serif;
-      src: url('assets/font.woff') format('woff');
+      font-family: 'CustomFontFamily';
+      src: url('font.woff') format('woff');
     }
 
     html, body {
+      font-family: 'CustomFontFamily', Arial, sans-serif;
       margin: 0;
       padding: 0;
       background: url('background.jpg') no-repeat center center fixed;
@@ -575,6 +576,15 @@ function showOutro() {
   overlayImage.src = 'outro.jpg';
   overlay.style.display = 'flex';
   playAudio('outro.mp3');
+
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  const closeOnFinish = urlParams.get("close-on-finish");
+  if (closeOnFinish){
+   document.addEventListener('keydown', ()=>{
+     window.close();
+    });
+  }
 }
 
 // === INIT ===
@@ -608,7 +618,6 @@ document.addEventListener('keyup', (e) => {
   const startScreen = document.getElementById('start-screen');
 
   document.addEventListener('keydown', function launchIntro(e) {
-    if (e.code === 'Space') {
       document.removeEventListener('keydown', launchIntro);
       startScreen.style.display = 'none'; // Hide pulsating icon
       overlayImage.src = 'intro.jpg';
@@ -621,7 +630,6 @@ document.addEventListener('keyup', (e) => {
         startGame();
         resetIdleTimer();
       }, INTRO_DELAY);
-    }
   });
 });
 
