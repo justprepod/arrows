@@ -5,12 +5,11 @@
   <title>Greek Alphabet Game</title>
   <style>
     @font-face {
-      font-family: 'CustomFontFamily';
-      src: url('font.woff') format('woff');
+      font-family: 'CustomFontFamily', Arial, sans-serif;
+      src: url('assets/font.woff') format('woff');
     }
 
     html, body {
-      font-family: 'CustomFontFamily', Arial, sans-serif;
       margin: 0;
       padding: 0;
       background: url('background.jpg') no-repeat center center fixed;
@@ -240,7 +239,9 @@ document.documentElement.style.setProperty('--char-move-time', CHARACTER_MOVE_TI
 document.documentElement.style.setProperty('--bird-fall-time', BIRD_FALL_TIME + 'ms');
 
 // === GAME DATA ===
-const dictionary = [['А', 'ФИ', 'НА'], ['ПЕР', 'СЕЙ'], ['ПА', 'РИС'], ['Е', 'ЛЕ', 'НА'], ['АР', 'ГО'], ['Я', 'СОН'], ['А', 'РЕС'], ['РУ', 'НО'], ['ПАР', 'ФЕ', 'НОН'], ['ГАР', 'ПИ', 'Я'], ['ЦЕР', 'БЕР'], ['ГИД', 'РА'], ['ГЕР', 'МЕС'], ['ГЕК', 'ТОР'], ['МЕ', 'НЕ', 'ЛАЙ'], ['А', 'ПОЛ', 'ЛОН'], ['ДЕ', 'МЕТ', 'РА'], ['ПО', 'СЕЙ', 'ДОН'], ['МЕ', 'ДУ', 'ЗА'], ['ДИ', 'О', 'НИС'], ['КИР', 'КА'], ['ПЕ', 'ГАС'], ['КОЛ', 'ХИ', 'ДА'], ['ТРО', 'Я'], ['ТЕ', 'СЕЙ'], ['О', 'РА', 'КУЛ'], ['СИ', 'РЕ', 'НА'], ['ПИ', 'ФИ', 'Я'], ['ОР', 'ФЕЙ'], ['ГЕ', 'РА'], ['ПАР', 'НАС']];
+const dictionary = [['А', 'ФИ', 'НА'], ['ПЕР', 'СЕЙ'], ['ПА', 'РИС'], ['Е', 'ЛЕ', 'НА'], ['АР', 'ГО'], ['Я', 'СОН'], ['А', 'РЕС'], ['РУ', 'НО'], ['ПАР', 'ФЕ', 'НОН'], ['ГАР', 'ПИ', 'Я'], ['ЦЕР', 'БЕР'], ['ГИД', 'РА'], ['ГЕР', 'МЕС'], ['ГЕК', 'ТОР'], ['МЕ', 'НЕ', 'ЛАЙ'], ['А', 'ПОЛ', 'ЛОН'], ['ДЕ', 'МЕТ', 'РА'], ['ПО', 'СЕЙ', 'ДОН'], ['МЕ', 'ДУ', 'ЗА'], ['ДИ', 'О', 'НИС'], ['КИР', 'КА'], ['ПЕ', 'ГАС'], ['КОЛ', 'ХИ', 'ДА'], ['ТРО', 'Я'], ['ТЕ', 'СЕЙ'], ['О', 'РА', 'КУЛ'], ['СИ', 'РЕ', 'НА'], ['ПИ', 'ФИ', 'Я'], ['ОР', 'ФЕЙ'], ['ГЕ', 'РА'], ['ПАР', 'НАС'],
+  ['АН', 'ДРО', 'МЕ', 'ДА'], ['А', 'РИ', 'АД', 'НА'], ['АР', 'ТЕ', 'МИ', 'ДА'], ['АР', 'ФА'], ['АФ', 'РО', 'ДИ', 'ТА'], ['ВЕ', 'НОК'], ['ГЕ', 'ЛИ', 'ОС'], ['ГОП', 'ЛИТ'], ['ДА', 'НА', 'Я'], ['КИ', 'ФА', 'РА'], ['ЛИ', 'РА'], ['НИ', 'КА'], ['О', 'ДИС', 'СЕЙ'], ['О', 'ЛИ', 'ВА'], ['ПА', 'ЛИ', 'ЦА'], ['ПА', 'РУС'], ['ПИ', 'ФОН'], ['САН', 'ДА', 'ЛИ', 'Я'], ['СКА', 'ЛА'], ['СТА', 'ТУ', 'Я'], ['ТРИ', 'РЕ', 'МА'], ['ТУ', 'НИ', 'КА'], ['ХИ', 'МЕ', 'РА'], ['Э', 'РОТ']
+];
 
 const allSyllables = ['А', 'ФИ', 'НА', 'ПЕР', 'СЕЙ', 'ПА', 'РИС', 'Е', 'ЛЕ', 'НА', 'АР', 'ГО', 'Я', 'СОН', 'А', 'РЕС', 'РУ', 'НО', 'ПАР', 'ФЕ', 'НОН', 'ГАР', 'ПИ', 'Я', 'ЦЕР', 'БЕР', 'ГИД', 'РА', 'МЕ', 'ДЕ', 'Я', 'ГЕР', 'МЕС', 'ПРО', 'МЕ', 'ТЕЙ', 'ГЕК', 'ТОР', 'МЕ', 'НЕ', 'ЛАЙ', 'А', 'ПОЛ', 'ЛОН', 'ДЕ', 'МЕТ', 'РА', 'ПО', 'СЕЙ', 'ДОН', 'МЕ', 'ДУЗА', 'ДИ', 'О', 'НИС', 'КИР', 'КА', 'ПЕ', 'ГАС', 'КОЛ', 'ХИ', 'ДА', 'ТРО', 'Я', 'ТЕ', 'СЕЙ', 'О', 'РА', 'КУЛ', 'СИ', 'РЕ', 'НА'];
 const idlePhrases = ['idle0.mp3','idle1.mp3','idle2.mp3'];
@@ -576,15 +577,6 @@ function showOutro() {
   overlayImage.src = 'outro.jpg';
   overlay.style.display = 'flex';
   playAudio('outro.mp3');
-
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
-  const closeOnFinish = urlParams.get("close-on-finish");
-  if (closeOnFinish){
-   document.addEventListener('keydown', ()=>{
-     window.close();
-    });
-  }
 }
 
 // === INIT ===
@@ -618,6 +610,7 @@ document.addEventListener('keyup', (e) => {
   const startScreen = document.getElementById('start-screen');
 
   document.addEventListener('keydown', function launchIntro(e) {
+    if (e.code === 'Space') {
       document.removeEventListener('keydown', launchIntro);
       startScreen.style.display = 'none'; // Hide pulsating icon
       overlayImage.src = 'intro.jpg';
@@ -630,6 +623,7 @@ document.addEventListener('keyup', (e) => {
         startGame();
         resetIdleTimer();
       }, INTRO_DELAY);
+    }
   });
 });
 

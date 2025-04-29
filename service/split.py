@@ -39,15 +39,74 @@ from pydub import AudioSegment, silence
 import os
 
 # === INPUT ===
-audio_path = "audio.wav"
+audio_path = "audio1_slow.wav"
 
 # === STEP 1: Generate flat list of spoken items ===
-spoken_items = []
+spoken_items =  [
+    "андромеда",
+    "ан",
+    "дро",
+    "ариадна",
+    "ри",
+    "ад",
+    "артемида",
+    "ми",
+    "арфа",
+    "фа",
+    "афродита",
+    "аф",
+    "ро",
+    "та",
+    "венок",
+    "ве",
+    "нок",
+    "гелиос",
+    "ли",
+    "ос",
+    "гоплит",
+    "гоп",
+    "лит",
+    "даная",
+    "кифара",
+    "ки",
+    "лира",
+    "море",
+    "мо",
+    "ника",
+    "ни",
+    "одиссей",
+    "дис",
+    "олива",
+    "ва",
+    "парус",
+    "рус",
+    "пифон",
+    "фон",
+    "сандалия",
+    "сан",
+    "скала",
+    "ска",
+    "ла",
+    "статуя",
+    "ста",
+    "ту",
+    "трирема",
+    "три",
+    "ма",
+    "туника",
+    "химера",
+    "эрот",
+    "э",
+    "рот"
+]
+
+'''
 for entry in syllable_words:
     word = entry.replace("-", "")
     syllables = entry.split("-")
     spoken_items.append(word)
     spoken_items.extend(syllables)
+'''
 
 # === STEP 2: Load audio and detect silences ===
 audio = AudioSegment.from_wav(audio_path)
@@ -79,7 +138,7 @@ for i in range(len(cut_points) - 1):
         name = base_name
     used_names[base_name] = count + 1
 
-    chunk.export(f"output/{name}.wav", format="wav")
+    chunk.export(f"output1/{name}.wav", format="wav")
 
 print("Done.")
 
